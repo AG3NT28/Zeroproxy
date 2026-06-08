@@ -131,25 +131,34 @@
   function startScanning() {
     const video = document.getElementById('cam-video')
     if (!video) return
+    if (typeof window.jsQR !== 'function') {
+      toast('QR decoder failed to load — use manual mode', 'err')
+      return
+    }
     const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
     function scanFrame() {
       if (!camStream) return
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-        const code = window.jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' })
-        if (code && code.data) {
-          const token = code.data.toString().trim()
-          if (token !== lastScannedToken || Date.now() - lastScanTime > 3000) {
-            lastScannedToken = token
-            lastScanTime = Date.now()
-            mark(token)
+      // Guard the decode step — a single bad frame (e.g. zero-size canvas while
+      // the camera is still warming up) must not throw and silently kill the
+      // requestAnimationFrame loop, which would look like "scanning does nothing".
+      try {
+        if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth && video.videoHeight) {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const code = window.jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' })
+          if (code && code.data) {
+            const token = code.data.toString().trim()
+            if (token !== lastScannedToken || Date.now() - lastScanTime > 3000) {
+              lastScannedToken = token
+              lastScanTime = Date.now()
+              mark(token)
+            }
           }
         }
-      }
+      } catch (e) { console.warn('QR decode frame skipped', e) }
       scanAnimFrame = requestAnimationFrame(scanFrame)
     }
     scanAnimFrame = requestAnimationFrame(scanFrame)
