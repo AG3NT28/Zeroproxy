@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import avatar_initials %}
+{% block body %}
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🎓</div>
+      <div class="logo-meta">
+        <div class="logo-text">ZeroProxy</div>
+        <div class="logo-sub">v2.0 · {{ role_labels[user.role] }}</div>
+      </div>
+      <button class="sidebar-collapse" id="sidebar-collapse" type="button" title="Collapse sidebar">‹</button>
+    </div>
+    <nav class="sidebar-nav">
+      {% for section in nav_sections %}
+      <div class="nav-section">
+        <div class="nav-section-title">{{ section.label }}</div>
+        {% for item in section['items'] %}
+        <a class="nav-item{{ ' active' if request.endpoint == item.endpoint else '' }}" href="{{ url_for(item.endpoint) }}" title="{{ item.label }}">
+          <span class="nav-icon">{{ item.icon }}</span><span class="nav-label">{{ item.label }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </nav>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="main-content">
+    <div class="topbar">
+      <button class="menu-toggle" id="menu-toggle" type="button">☰</button>
+      <div class="topbar-heading">
+        <div class="crumb">{{ role_labels[user.role] }}</div>
+        <h1>{{ page_title }}</h1>
+      </div>
+      <div id="topbar-actions">{% block topbar_actions %}{% endblock %}</div>
+      <div class="dropdown" id="user-menu">
+        <button class="user-trigger" id="user-trigger" type="button">
+          <div class="avatar av-sm {{ role_avatar_class[user.role] }}">{{ avatar_initials(user.name) }}</div>
+          <div class="user-trigger-meta">
+            <div class="u-name">{{ user.name }}</div>
+            <div class="u-role">{{ user.dept or role_labels[user.role] }}</div>
+          </div>
+          <span class="user-caret">⌄</span>
+        </button>
+        <div class="dropdown-menu">
+          <div class="dm-header">
+            <div class="u-name">{{ user.name }}</div>
+            <div class="u-role">@{{ user.username }} · {{ user.dept or role_labels[user.role] }}</div>
+          </div>
+          <form method="post" action="{{ url_for('auth.logout') }}" data-confirm="Sign out?">
+            <button type="submit" class="dropdown-item danger"><span>↩</span> Sign out</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="page-body">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

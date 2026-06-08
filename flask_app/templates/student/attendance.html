@@ -1,0 +1,75 @@
+{% extends 'shell.html' %}
+{% block content %}
+{% if any_low %}
+<div class="alert-banner">
+  <div class="ab-icon">⚠️</div>
+  <div><div class="ab-title">Low Attendance Warning</div><div class="ab-sub">Your attendance has dropped below 75% in one or more subjects. Your parent/guardian has been notified.</div></div>
+</div>
+{% endif %}
+<div class="g3" style="margin-bottom:16px">
+  <div class="metric green"><div class="mk">Overall</div><div class="mv">{{ (overall ~ '%') if overall is not none else '—' }}</div></div>
+  <div class="metric blue"><div class="mk">Classes attended</div><div class="mv">{{ total_classes }}</div></div>
+  <div class="metric {{ 'red' if any_low else 'green' }}"><div class="mk">At-risk subjects</div><div class="mv">{{ at_risk_count }}</div></div>
+</div>
+<div class="card">
+  <div class="card-title" style="margin-bottom:16px">Subject-wise Attendance</div>
+  {% if subjects %}
+    {% for s in subjects %}
+    <div style="margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div>
+          <span style="font-size:14px;font-weight:600">{{ s.code }}</span>
+          <span style="font-size:12px;color:var(--text2);margin-left:8px">{{ s.name }}</span>
+        </div>
+        <span class="badge badge-{{ s.color }}">{{ s.pct }}%</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:5px">{{ s.present }} / {{ s.total }} classes attended · Sem {{ s.sem }} · {{ s.dept }}</div>
+      <div class="pbar"><div class="pbar-fill {{ s.color }}" style="width:{{ s.pct }}%"></div></div>
+      {% if s.needed > 0 %}<div style="font-size:11px;color:var(--red);margin-top:4px">⚠ Need {{ s.needed }} more consecutive classes to reach 75%</div>{% endif %}
+      {% if s.pct >= 75 %}<div style="font-size:11px;color:var(--green);margin-top:4px">✓ Safe zone — can miss {{ s.safe }} more class{{ 'es' if s.safe != 1 else '' }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No attendance data yet</div>
+  {% endif %}
+</div>
+<div class="card">
+  <div class="card-title" style="margin-bottom:14px">Recent Sessions</div>
+  {% if records %}
+    {% for r in records %}
+    <div class="row-item">
+      <div class="ri-main"><div class="ri-title">{{ r.code }}</div><div class="ri-sub">{{ r.date }} · {{ r.time }} · {{ r.dept }}</div></div>
+      <span class="badge badge-green">✓ Present</span>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No records yet</div>
+  {% endif %}
+</div>
+{% if alerts %}
+<div class="card">
+  <div class="card-title" style="margin-bottom:14px">Parent Alert Log</div>
+  {% for a in alerts %}
+  <div class="row-item">
+    <div class="ri-main"><div class="ri-title">Alert sent — {{ a.subjects }}</div><div class="ri-sub">{{ a.date }} · To: {{ a.parent_email }}</div></div>
+    <span class="badge badge-amber">Sent</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+<div class="card">
+  <div class="card-title" style="margin-bottom:14px">Announcements</div>
+  <div>
+    {% if announcements %}
+      {% for a in announcements %}
+      <div class="row-item">
+        <div class="ri-main"><div class="ri-title">{{ a.title }}</div><div class="ri-sub">{{ a.body }}</div></div>
+        <div style="font-size:11px;color:var(--text3);flex-shrink:0">{{ a.date }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No announcements</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

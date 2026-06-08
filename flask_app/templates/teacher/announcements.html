@@ -1,0 +1,36 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card" style="margin-bottom:16px">
+  <div class="card-title" style="margin-bottom:14px">Post Announcement</div>
+  <form method="post" action="{{ url_for('teacher.post_announcement') }}">
+    <div class="field"><label>Title</label><input name="title" placeholder="Announcement title" required></div>
+    <div class="field"><label>Message</label><textarea name="body" rows="3" placeholder="Write your announcement..." required></textarea></div>
+    <div class="field"><label>Audience</label>
+      <select name="target">
+        <option value="all">Everyone</option>
+        <option value="student">Students only</option>
+        <option value="teacher">Teachers only</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" type="submit">📣 Post Announcement</button>
+  </form>
+</div>
+<div class="card">
+  <div class="card-title" style="margin-bottom:14px">Posted Announcements</div>
+  <div>
+    {% if announcements %}
+      {% for a in announcements %}
+      <div class="row-item">
+        <div class="ri-main">
+          <div class="ri-title">{{ a.title }}</div>
+          <div class="ri-sub">{{ a.body }}</div>
+          <div class="ri-sub" style="margin-top:2px;color:var(--text3)">{{ a.date }} · {{ a.target }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No announcements yet</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

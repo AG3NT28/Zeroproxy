@@ -1,0 +1,27 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-header"><div class="card-title">Leave Requests</div></div>
+  <div>
+    {% if leaves %}
+      {% for l in leaves %}
+      <div class="row-item">
+        <div class="ri-main">
+          <div class="ri-title">{{ l.student_name }} ({{ l.roll }})</div>
+          <div class="ri-sub">{{ l.subject }} · {{ l.from_date }} to {{ l.to_date }} · {{ l.reason }}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="badge {{ 'badge-green' if l.status == 'approved' else ('badge-red' if l.status == 'rejected' else 'badge-amber') }}">{{ l.status }}</span>
+          {% if l.status == 'pending' %}
+          <form method="post" action="{{ url_for('teacher.update_leave', lid=l.id, action='approved') }}" style="display:inline"><button class="btn btn-success btn-xs" type="submit">✓</button></form>
+          <form method="post" action="{{ url_for('teacher.update_leave', lid=l.id, action='rejected') }}" style="display:inline"><button class="btn btn-danger btn-xs" type="submit">✕</button></form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No leave requests</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

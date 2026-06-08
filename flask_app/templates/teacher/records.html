@@ -1,0 +1,69 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card" style="margin-bottom:16px">
+  <div class="card-title">Students Below {{ threshold }}% Attendance</div>
+  <div>
+    {% if at_risk %}
+      {% for s in at_risk %}
+      <div class="row-item">
+        <div class="avatar av-sm av-red">{{ avatar_initials(s.name) }}</div>
+        <div class="ri-main"><div class="ri-title">{{ s.name }}</div><div class="ri-sub">{{ s.roll }} · {{ s.pct }}%</div></div>
+        <span class="badge badge-red">{{ s.pct }}%</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No students below threshold</div>
+    {% endif %}
+  </div>
+</div>
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Session Records</div>
+    <form method="get" style="display:flex;gap:8px;flex-wrap:wrap" id="rec-filter-form">
+      <select name="subject" id="rec-filter-sub" style="font-size:12px;padding:6px 10px;border-radius:var(--r8);background:var(--s2);border:1px solid var(--border);color:var(--text)" onchange="this.form.submit()">
+        <option value="">All subjects</option>
+        {% for sub in subjects %}<option value="{{ sub }}"{{ ' selected' if sub == filter_sub }}>{{ sub }}</option>{% endfor %}
+      </select>
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('teacher.export_records', fmt='csv', subject=filter_sub) }}">📥 CSV</a>
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('teacher.export_records', fmt='json', subject=filter_sub) }}">📋 JSON</a>
+    </form>
+  </div>
+  <div>
+    {% if sessions %}
+      {% for s in sessions %}
+      <a class="row-item" style="cursor:pointer;text-decoration:none;color:inherit" href="{{ url_for('teacher.records', subject=filter_sub, detail=s.id) }}">
+        <div class="ri-main">
+          <div class="ri-title">{{ s.code }} · {{ s.name or '' }} · Sec {{ s.cls }}</div>
+          <div class="ri-sub">{{ s.dept }} · Sem {{ s.sem }} · {{ s.date }} · {{ s.attendance.count() }} present</div>
+        </div>
+        <span class="badge {{ 'badge-green' if s.active else 'badge-purple' }}">{{ 'Live' if s.active else 'Done' }}</span>
+      </a>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No sessions found</div>
+    {% endif %}
+  </div>
+</div>
+{% if detail %}
+<div class="card" id="rec-detail">
+  <div class="card-header">
+    <div class="card-title">{{ detail.code }} · {{ detail.date }}</div>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('teacher.records', subject=filter_sub) }}">✕ Close</a>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>#</th><th>Name</th><th>Roll</th><th>Time</th><th>Type</th></tr></thead>
+    <tbody>
+      {% set entries = detail.attendance.all() %}
+      {% if entries %}
+        {% for e in entries %}
+        <tr><td>{{ loop.index }}</td><td>{{ e.name }}</td><td>{{ e.roll }}</td><td>{{ e.time }}</td><td>{{ 'Manual' if e.manual else 'QR Scan' }}</td></tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="5" style="text-align:center;color:var(--text3)">No attendance recorded</td></tr>
+      {% endif %}
+    </tbody>
+  </table></div>
+  <div style="margin-top:10px;font-size:12px;color:var(--text2)">{{ detail.attendance.count() }} students present</div>
+</div>
+{% endif %}
+{% endblock %}

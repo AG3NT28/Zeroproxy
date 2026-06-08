@@ -1,0 +1,28 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-title" style="margin-bottom:16px">Add Holiday</div>
+  <form method="post" action="{{ url_for('admin.add_holiday') }}">
+    <div class="field-row">
+      <div class="field"><label>Date</label><input type="date" name="date" value="{{ today }}"></div>
+      <div class="field"><label>Name</label><input name="name" placeholder="e.g. Independence Day"></div>
+    </div>
+    <button class="btn btn-primary" type="submit">+ Add Holiday</button>
+  </form>
+</div>
+<div class="card">
+  <div class="card-title" style="margin-bottom:14px">Holidays</div>
+  {% if holidays %}
+    {% for h in holidays %}
+    <div class="row-item">
+      <div class="ri-main"><div class="ri-title">{{ h.name }}</div><div class="ri-sub">{{ h.date }}</div></div>
+      <form method="post" action="{{ url_for('admin.delete_holiday', date=h.date) }}" style="display:inline" onsubmit="return confirm('Remove this holiday?')">
+        <button class="btn btn-icon" type="submit" title="Delete">🗑</button>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No holidays added</div>
+  {% endif %}
+</div>
+{% endblock %}

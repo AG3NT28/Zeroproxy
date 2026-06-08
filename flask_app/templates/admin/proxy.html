@@ -1,0 +1,22 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div><div class="card-title">Proxy Log</div><div class="card-sub">{{ logs|length }} flagged attempt{{ 's' if logs|length != 1 else '' }}</div></div>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_proxy') }}">📥 Export CSV</a>
+  </div>
+  {% if logs %}
+    {% for p in logs %}
+    <div class="row-item">
+      <div class="ri-main">
+        <div class="ri-title">{{ p.student }} ({{ p.roll }})</div>
+        <div class="ri-sub">{{ p.session }} · {{ p.reason }}</div>
+      </div>
+      <span class="badge badge-red">{{ p.time }}</span>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No proxy attempts flagged</div>
+  {% endif %}
+</div>
+{% endblock %}

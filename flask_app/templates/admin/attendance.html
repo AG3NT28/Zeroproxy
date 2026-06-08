@@ -1,0 +1,47 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div><div class="card-title">Attendance Report</div><div class="card-sub">{{ rows|length }} record{{ 's' if rows|length != 1 else '' }}</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_attendance', dept=dept_f, subject=sub_f, thresh=thresh) }}">📥 Export CSV</a>
+      <form method="post" action="{{ url_for('admin.send_all_alerts') }}" style="display:inline" onsubmit="return confirm('Send parent alerts to all at-risk students?')">
+        <button class="btn btn-amber btn-sm" type="submit">📧 Send All Alerts</button>
+      </form>
+    </div>
+  </div>
+  <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+    <select name="dept" onchange="this.form.submit()" style="font-size:12px;padding:6px 10px;border-radius:var(--r8);background:var(--s2);border:1px solid var(--border);color:var(--text)">
+      <option value="">All departments</option>
+      {% for d in depts %}<option value="{{ d }}"{{ ' selected' if d == dept_f }}>{{ d }}</option>{% endfor %}
+    </select>
+    <select name="subject" onchange="this.form.submit()" style="font-size:12px;padding:6px 10px;border-radius:var(--r8);background:var(--s2);border:1px solid var(--border);color:var(--text)">
+      <option value="">All subjects</option>
+      {% for s in subjects %}<option value="{{ s }}"{{ ' selected' if s == sub_f }}>{{ s }}</option>{% endfor %}
+    </select>
+    <select name="thresh" onchange="this.form.submit()" style="font-size:12px;padding:6px 10px;border-radius:var(--r8);background:var(--s2);border:1px solid var(--border);color:var(--text)">
+      <option value="">All</option>
+      <option value="below75"{{ ' selected' if thresh == 'below75' }}>Below 75%</option>
+      <option value="below60"{{ ' selected' if thresh == 'below60' }}>Below 60%</option>
+      <option value="above75"{{ ' selected' if thresh == 'above75' }}>Above 75%</option>
+    </select>
+  </form>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Student</th><th>Roll</th><th>Dept</th><th>Subject</th><th>Present</th><th>Total</th><th>%</th><th>Status</th></tr></thead>
+    <tbody>
+      {% if rows %}
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.student }}</td><td>{{ r.roll }}</td><td>{{ r.dept }}</td><td>{{ r.subject }}</td>
+          <td>{{ r.present }}</td><td>{{ r.total }}</td>
+          <td><span class="badge badge-{{ r.color }}">{{ r.pct }}%</span></td>
+          <td><span class="badge badge-{{ r.status_color }}">{{ r.status }}</span></td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="8" style="text-align:center;color:var(--text3)">No records match these filters</td></tr>
+      {% endif %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-title" style="margin-bottom:16px">{{ 'Edit Student' if student else 'Add Student' }}</div>
+  <form method="post" action="{{ url_for('admin.edit_student', uname=student.username) if student else url_for('admin.new_student') }}">
+    {% if not student %}
+    <div class="field"><label>Username</label><input name="username" placeholder="e.g. arjun.k" required></div>
+    {% endif %}
+    <div class="field-row">
+      <div class="field"><label>Full Name</label><input name="name" value="{{ student.name if student else '' }}" required></div>
+      <div class="field"><label>Roll Number</label><input name="roll" value="{{ student.roll if student else '' }}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Department</label>
+        <select name="dept">
+          {% for d in depts %}<option value="{{ d }}"{{ ' selected' if student and student.dept == d }}>{{ d }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field"><label>Semester</label><input type="number" name="sem" min="1" max="8" value="{{ student.sem if student else 4 }}"></div>
+      <div class="field"><label>Section</label><input name="section" value="{{ student.section if student else 'A' }}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Email</label><input type="email" name="email" value="{{ student.email if student else '' }}"></div>
+      <div class="field"><label>Phone</label><input name="phone" value="{{ student.phone if student else '' }}"></div>
+    </div>
+    <div class="field"><label>Password</label><input name="password" placeholder="{{ 'Leave to keep unchanged' if student else 'pass123' }}" value="{{ student.password if student else '' }}"></div>
+    <div class="divider"></div>
+    <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px">Parent / Guardian Contact</div>
+    <div class="field-row">
+      <div class="field"><label>Parent Name</label><input name="parent_name" value="{{ student.parent_name if student else '' }}"></div>
+      <div class="field"><label>Parent Email</label><input type="email" name="parent_email" value="{{ student.parent_email if student else '' }}"></div>
+    </div>
+    <div class="field"><label>Parent Phone</label><input name="parent_phone" value="{{ student.parent_phone if student else '' }}"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" type="submit">{{ 'Save Changes' if student else 'Add Student' }}</button>
+      <a class="btn btn-secondary" href="{{ url_for('admin.students') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

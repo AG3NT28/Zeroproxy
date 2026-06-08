@@ -1,0 +1,36 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div><div class="card-title">Teachers</div><div class="card-sub">{{ rows|length }} teacher{{ 's' if rows|length != 1 else '' }}</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_teachers') }}">📥 Export CSV</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('admin.new_teacher') }}">+ Add Teacher</a>
+    </div>
+  </div>
+  <form method="get" style="display:flex;gap:8px;margin-bottom:16px">
+    <input type="text" name="q" value="{{ search }}" placeholder="Search name, dept, username..."
+           style="flex:1;min-width:200px;font-size:13px;padding:9px 12px;border-radius:var(--r8);background:var(--s2);border:1px solid var(--border);color:var(--text)">
+    <button class="btn btn-secondary btn-sm" type="submit">Search</button>
+  </form>
+  {% if rows %}
+    {% for r in rows %}
+    <div class="row-item">
+      <div class="avatar av-sm av-accent">{{ avatar_initials(r.user.name) }}</div>
+      <div class="ri-main">
+        <div class="ri-title">{{ r.user.name }}</div>
+        <div class="ri-sub">{{ r.user.dept }}{{ ' · ' ~ r.user.subjects|join(', ') if r.user.subjects }} · {{ r.sess_count }} session{{ 's' if r.sess_count != 1 else '' }}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <a class="btn btn-icon" title="Edit" href="{{ url_for('admin.edit_teacher', uname=r.user.username) }}">✎</a>
+        <form method="post" action="{{ url_for('admin.delete_teacher', uname=r.user.username) }}" style="display:inline" onsubmit="return confirm('Delete this teacher?')">
+          <button class="btn btn-icon" type="submit" title="Delete">🗑</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No teachers found</div>
+  {% endif %}
+</div>
+{% endblock %}

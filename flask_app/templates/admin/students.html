@@ -1,0 +1,46 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div><div class="card-title">Students</div><div class="card-sub">{{ rows|length }} student{{ 's' if rows|length != 1 else '' }}</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.bulk_import_students') }}">📤 Bulk Import</a>
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_students') }}">📥 Export CSV</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('admin.new_student') }}">+ Add Student</a>
+    </div>
+  </div>
+  <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+    <input type="text" name="q" value="{{ search }}" placeholder="Search name, roll, username..."
+           style="flex:1;min-width:200px;font-size:13px;padding:9px 12px;border-radius:var(--r8);background:var(--s2);border:1px solid var(--border);color:var(--text)">
+    <select name="dept" onchange="this.form.submit()"
+            style="font-size:12px;padding:6px 10px;border-radius:var(--r8);background:var(--s2);border:1px solid var(--border);color:var(--text)">
+      <option value="">All departments</option>
+      {% for d in depts %}<option value="{{ d }}"{{ ' selected' if d == dept_f }}>{{ d }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-secondary btn-sm" type="submit">Filter</button>
+  </form>
+  {% if rows %}
+    {% for r in rows %}
+    <div class="row-item">
+      <div class="avatar av-sm av-green">{{ avatar_initials(r.user.name) }}</div>
+      <div class="ri-main">
+        <div class="ri-title">{{ r.user.name }}</div>
+        <div class="ri-sub">{{ r.user.roll }} · {{ r.user.dept }} · Sem {{ r.user.sem }} · Sec {{ r.user.section }}</div>
+      </div>
+      {% if r.pct is not none %}<span class="badge badge-{{ r.color }}">{{ r.pct }}%</span>{% endif %}
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <form method="post" action="{{ url_for('admin.alert_student', uname=r.user.username) }}" style="display:inline">
+          <button class="btn btn-icon" type="submit" title="Send parent alert">📧</button>
+        </form>
+        <a class="btn btn-icon" title="Edit" href="{{ url_for('admin.edit_student', uname=r.user.username) }}">✎</a>
+        <form method="post" action="{{ url_for('admin.delete_student', uname=r.user.username) }}" style="display:inline" onsubmit="return confirm('Delete this student?')">
+          <button class="btn btn-icon" type="submit" title="Delete">🗑</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No students found</div>
+  {% endif %}
+</div>
+{% endblock %}

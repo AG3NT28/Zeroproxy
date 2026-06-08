@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Sign in{% endblock %}
+{% block body %}
+<div class="login-page">
+  <div class="login-brand">
+    <div class="lb-icon">🎓</div>
+    <h2>Attendance, without the guesswork.</h2>
+    <p>ZeroProxy replaces roll-call with rotating QR codes, geofencing, and live analytics — so every class is accounted for and every parent stays in the loop.</p>
+    <div class="lb-points">
+      <div class="lb-point"><span class="ico">📷</span> Scan-to-mark with rotating, single-use QR tokens</div>
+      <div class="lb-point"><span class="ico">📍</span> Geofenced check-ins keep attendance on-campus</div>
+      <div class="lb-point"><span class="ico">📊</span> Real-time dashboards for admins, teachers & students</div>
+      <div class="lb-point"><span class="ico">📧</span> Automatic parent alerts on low attendance</div>
+    </div>
+  </div>
+  <div class="login-form-side">
+    <div class="login-box">
+      <div class="login-logo">
+        <h1>Welcome back</h1>
+        <p>Sign in to your ZeroProxy account</p>
+      </div>
+      <div class="card">
+        <form method="post" action="{{ url_for('auth.login') }}">
+          <div class="field">
+            <label>Username</label>
+            <input name="username" placeholder="Enter username" autocomplete="username" autofocus>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input name="password" type="password" placeholder="Enter password" autocomplete="current-password">
+          </div>
+          <button class="btn btn-primary btn-block" type="submit" style="margin-top:4px">Sign In →</button>
+        </form>
+      </div>
+      <p class="login-hint">v2.0 · Smart Attendance Management System</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

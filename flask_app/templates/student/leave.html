@@ -1,0 +1,38 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-title" style="margin-bottom:16px">Apply for Leave</div>
+  <form method="post" action="{{ url_for('student.leave') }}">
+    <div class="field"><label>Subject</label>
+      <select name="subject">
+        <option value="">— Select subject —</option>
+        {% for s in subjects %}<option>{{ s }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>From Date</label><input type="date" name="from_date"></div>
+      <div class="field"><label>To Date</label><input type="date" name="to_date"></div>
+    </div>
+    <div class="field"><label>Reason</label><textarea name="reason" placeholder="Explain the reason for leave..."></textarea></div>
+    <button class="btn btn-primary" type="submit">Submit Leave Request</button>
+  </form>
+</div>
+<div class="card">
+  <div class="card-title" style="margin-bottom:14px">My Leave Requests</div>
+  <div>
+    {% if leaves %}
+      {% for l in leaves %}
+      <div class="row-item">
+        <div class="ri-main">
+          <div class="ri-title">{{ l.subject }} · {{ l.from_date }} to {{ l.to_date }}</div>
+          <div class="ri-sub">{{ l.reason }}</div>
+        </div>
+        <span class="badge {{ 'badge-green' if l.status == 'approved' else ('badge-red' if l.status == 'rejected' else 'badge-amber') }}">{{ l.status }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No leave requests</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

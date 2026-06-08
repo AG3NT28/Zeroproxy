@@ -1,0 +1,40 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+    <div class="avatar av-lg av-accent">{{ avatar_initials(user.name) }}</div>
+    <div>
+      <div style="font-size:18px;font-weight:700">{{ user.name }}</div>
+      <div style="font-size:13px;color:var(--text2)">{{ user.roll or '' }} · {{ user.dept or '' }} · Sem {{ user.sem or '' }}</div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="row-item" style="padding:14px 0;gap:12px;flex-wrap:wrap;display:flex;">
+    <div style="flex:1;min-width:180px"><div class="ri-title">Full Name</div><div class="ri-sub">{{ user.name or 'Not set' }}</div></div>
+    <div style="flex:1;min-width:180px"><div class="ri-title">Email</div><div class="ri-sub">{{ user.email or 'Not set' }}</div></div>
+  </div>
+  <div class="row-item" style="padding:14px 0;gap:12px;flex-wrap:wrap;display:flex;">
+    <div style="flex:1;min-width:180px"><div class="ri-title">Phone</div><div class="ri-sub">{{ user.phone or 'Not set' }}</div></div>
+  </div>
+  <div class="divider"></div>
+  <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;margin-top:6px">Parent / Guardian Contact</div>
+  <div class="row-item" style="padding:14px 0;gap:12px;flex-wrap:wrap;display:flex;">
+    <div style="flex:1;min-width:180px"><div class="ri-title">Parent Name</div><div class="ri-sub">{{ user.parent_name or 'Not set' }}</div></div>
+    <div style="flex:1;min-width:180px"><div class="ri-title">Parent Email</div><div class="ri-sub">{{ user.parent_email or 'Not set' }}</div></div>
+  </div>
+  <div class="row-item" style="padding:14px 0;gap:12px;flex-wrap:wrap;display:flex;">
+    <div style="flex:1;min-width:180px"><div class="ri-title">Parent Phone</div><div class="ri-sub">{{ user.parent_phone or 'Not set' }}</div></div>
+  </div>
+</div>
+<div class="card" style="margin-top:16px">
+  <div class="card-title" style="margin-bottom:14px">Change Password</div>
+  <form method="post" action="{{ url_for('student.update_password') }}">
+    <div class="field"><label>Current Password</label><input type="password" name="current" placeholder="Current password"></div>
+    <div class="field-row">
+      <div class="field"><label>New Password</label><input type="password" name="new" placeholder="New password"></div>
+      <div class="field"><label>Confirm Password</label><input type="password" name="confirm" placeholder="Confirm password"></div>
+    </div>
+    <button class="btn btn-primary" type="submit">Update Password</button>
+  </form>
+</div>
+{% endblock %}

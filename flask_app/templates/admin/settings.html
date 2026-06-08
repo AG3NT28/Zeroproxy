@@ -1,0 +1,41 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-title" style="margin-bottom:16px">College Settings</div>
+  <form method="post" action="{{ url_for('admin.settings') }}">
+    <div class="field"><label>College Name</label><input name="college_name" value="{{ settings.college_name }}"></div>
+    <div class="field-row">
+      <div class="field"><label>Attendance Threshold (%)</label><input type="number" name="threshold" min="1" max="100" value="{{ settings.threshold }}"></div>
+      <div class="field"><label>Campus WiFi SSID</label><input name="campus_wifi_ssid" value="{{ settings.campus_wifi_ssid }}"></div>
+    </div>
+    <div class="field"><label>Campus Geofence Radius (meters)</label><input type="number" name="campus_radius" min="1" value="{{ settings.campus_radius }}"></div>
+    <div class="field"><label>Allowed College WiFi IP Patterns (comma-separated — supports CIDR, wildcard *, or exact IP)</label>
+      <textarea name="college_wifi_ips" rows="2" placeholder="10.0.0.0/8, 172.16.0.0/12, 192.168.1.*">{{ settings.college_wifi_ips|join(', ') }}</textarea>
+    </div>
+    <button class="btn btn-primary" type="submit">Save Settings</button>
+  </form>
+</div>
+<div class="card">
+  <div class="card-title" style="margin-bottom:14px">Data Export</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_data', kind='attendance') }}">📥 All Attendance (CSV)</a>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_data', kind='users') }}">📥 Users (JSON)</a>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_data', kind='sessions') }}">📥 Sessions (JSON)</a>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title" style="color:var(--red);margin-bottom:14px">Danger Zone</div>
+  <div class="row-item">
+    <div class="ri-main"><div class="ri-title">Reset Attendance Data</div><div class="ri-sub">Clears all attendance records, parent alerts, and proxy logs — students, teachers, and sessions stay intact</div></div>
+    <form method="post" action="{{ url_for('admin.reset_attendance') }}" onsubmit="return confirm('Reset all attendance data? This cannot be undone.')">
+      <button class="btn btn-danger btn-sm" type="submit">Reset Attendance</button>
+    </form>
+  </div>
+  <div class="row-item">
+    <div class="ri-main"><div class="ri-title">Factory Reset</div><div class="ri-sub">Wipes everything and reseeds the demo dataset — you will be signed out</div></div>
+    <form method="post" action="{{ url_for('admin.factory_reset') }}" onsubmit="return confirm('This will erase ALL data and reseed demo data. Continue?')">
+      <button class="btn btn-danger btn-sm" type="submit">Factory Reset</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

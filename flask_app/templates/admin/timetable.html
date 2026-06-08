@@ -1,0 +1,40 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-header"><div class="card-title">Add Timetable Entry</div><a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_timetable') }}">📥 Export JSON</a></div>
+  <form method="post" action="{{ url_for('admin.add_timetable') }}">
+    <div class="field-row">
+      <div class="field"><label>Department</label>
+        <select name="dept">{% for d in depts %}<option value="{{ d }}">{{ d }}</option>{% endfor %}</select>
+      </div>
+      <div class="field"><label>Semester</label><input name="sem" value="4" placeholder="4"></div>
+      <div class="field"><label>Section</label><input name="section" value="A" placeholder="A"></div>
+    </div>
+    <div class="field"><label>Day</label>
+      <select name="day">{% for d in days %}<option value="{{ d }}">{{ d }}</option>{% endfor %}</select>
+    </div>
+    <div class="field"><label>Period (format: time | subject | teacher)</label><input name="period" placeholder="09:00–10:00 | CS301 | Prof. Ravi Sharma"></div>
+    <button class="btn btn-primary" type="submit">+ Add Entry</button>
+  </form>
+</div>
+<div class="card">
+  <div class="card-title" style="margin-bottom:14px">Timetable Entries</div>
+  {% if entries %}
+    {% for e in entries %}
+    <div class="row-item">
+      <div class="ri-main">
+        <div class="ri-title">{{ e.dept }} · Sem {{ e.sem }} · Sec {{ e.section }} · {{ e.day }}</div>
+        <div class="ri-sub">
+          {% for p in e.periods %}{{ p.time }} — {{ p.subject }}{{ ' (' ~ p.teacher ~ ')' if p.teacher }}{{ ', ' if not loop.last }}{% endfor %}
+        </div>
+      </div>
+      <form method="post" action="{{ url_for('admin.delete_timetable', entry_id=e.id) }}" style="display:inline" onsubmit="return confirm('Remove this entry?')">
+        <button class="btn btn-icon" type="submit" title="Delete">🗑</button>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No timetable entries yet</div>
+  {% endif %}
+</div>
+{% endblock %}

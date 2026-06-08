@@ -1,0 +1,15 @@
+{% macro avatar_initials(name) -%}
+{{ (name or 'U').split(' ') | map('first') | list | join('') | truncate(2, True, '') | upper }}
+{%- endmacro %}
+
+{% macro pct_color(pct) -%}
+{%- if pct is none -%}gray{%- elif pct >= 75 -%}green{%- elif pct >= 60 -%}amber{%- else -%}red{%- endif -%}
+{%- endmacro %}
+
+{% macro empty(text='Nothing here yet') -%}
+<div class="empty-state">{{ text }}</div>
+{%- endmacro %}
+
+{% macro badge(text, color) -%}
+<span class="badge badge-{{ color }}">{{ text }}</span>
+{%- endmacro %}

@@ -1,0 +1,22 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div><div class="card-title">Parent Alerts</div><div class="card-sub">{{ alerts|length }} alert{{ 's' if alerts|length != 1 else '' }} sent</div></div>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_alerts') }}">📥 Export CSV</a>
+  </div>
+  {% if alerts %}
+    {% for a in alerts %}
+    <div class="row-item">
+      <div class="ri-main">
+        <div class="ri-title">{{ a.student }} ({{ a.roll }})</div>
+        <div class="ri-sub">Low attendance in: {{ a.subjects }} · To: {{ a.parent_email }}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);flex-shrink:0">{{ a.date }} · {{ a.time }}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No alerts sent yet</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="g4" style="margin-bottom:16px">
+  <div class="metric green"><div class="mk">Overall Attendance</div><div class="mv">{{ overall_pct }}%</div></div>
+  <div class="metric blue"><div class="mk">Students</div><div class="mv">{{ total_students }}</div></div>
+  <div class="metric purple"><div class="mk">Teachers</div><div class="mv">{{ total_teachers }}</div></div>
+  <div class="metric {{ 'red' if risk_count else 'green' }}"><div class="mk">At-Risk Students</div><div class="mv">{{ risk_count }}</div></div>
+</div>
+<div class="g3" style="margin-bottom:16px">
+  <div class="metric"><div class="mk">Total Sessions</div><div class="mv">{{ total_sessions }}</div></div>
+  <div class="metric amber"><div class="mk">Live Sessions</div><div class="mv">{{ live_count }}</div></div>
+  <div class="metric {{ 'red' if proxy_count else '' }}"><div class="mk">Proxy Flags</div><div class="mv">{{ proxy_count }}</div></div>
+</div>
+<div class="card">
+  <div class="card-title" style="margin-bottom:14px">Department Attendance</div>
+  <div class="chart-container"><canvas id="dept-chart"></canvas></div>
+</div>
+<div class="card">
+  <div class="card-title" style="margin-bottom:14px">Students At Risk (&lt; 75%)</div>
+  {% if risk_students %}
+    {% for s in risk_students %}
+    <div class="row-item">
+      <div class="avatar av-sm av-red">{{ avatar_initials(s.name) }}</div>
+      <div class="ri-main"><div class="ri-title">{{ s.name }}</div><div class="ri-sub">{{ s.roll }} · {{ s.dept }} · Sem {{ s.sem }}</div></div>
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.edit_student', uname=s.username) }}">View</a>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No students at risk</div>
+  {% endif %}
+</div>
+<div class="card">
+  <div class="card-header"><div class="card-title">Recent Parent Alerts</div><a class="btn btn-secondary btn-sm" href="{{ url_for('admin.alerts') }}">View all</a></div>
+  {% if alerts %}
+    {% for a in alerts %}
+    <div class="row-item">
+      <div class="ri-main"><div class="ri-title">{{ a.student }} · {{ a.subjects }}</div><div class="ri-sub">{{ a.date }} · To: {{ a.parent_email }}</div></div>
+      <span class="badge badge-amber">Sent</span>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No alerts yet</div>
+  {% endif %}
+</div>
+<div class="card">
+  <div class="card-header"><div class="card-title">Recent Sessions</div><a class="btn btn-secondary btn-sm" href="{{ url_for('admin.sessions') }}">View all</a></div>
+  {% if recent_sessions %}
+    {% for s in recent_sessions %}
+    <div class="row-item">
+      <div class="ri-main"><div class="ri-title">{{ s.code }} · {{ s.dept }} Sec {{ s.cls }}</div><div class="ri-sub">{{ s.teacher }} · {{ s.date }} · {{ s.attendance.count() }} present</div></div>
+      <span class="badge {{ 'badge-green' if s.active else 'badge-purple' }}">{{ 'Live' if s.active else 'Done' }}</span>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No sessions yet</div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block head %}
+<script>window.ADMIN_CHART_DATA = {{ chart_data | tojson }}</script>
+<script src="{{ url_for('static', filename='js/admin_dashboard.js') }}" defer></script>
+{% endblock %}

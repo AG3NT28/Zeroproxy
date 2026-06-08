@@ -1,0 +1,28 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-header"><div><div class="card-title">Bulk Import Students</div><div class="card-sub">Upload a CSV with columns: username, name, roll, dept, sem, section, email, phone, parentName, parentEmail, parentPhone, password</div></div></div>
+  <form method="post" enctype="multipart/form-data">
+    <div class="field"><label>CSV File</label><input type="file" name="csv_file" accept=".csv,text/csv"></div>
+    <div class="field"><label>...or paste CSV text</label><textarea name="csv_text" rows="6" placeholder="username,name,roll,dept,sem,section,email,phone,parentName,parentEmail,parentPhone,password">{{ csv_text }}</textarea></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" type="submit" name="action" value="preview">👁 Preview</button>
+      <button class="btn btn-primary" type="submit" name="action" value="import">📤 Import</button>
+      <a class="btn btn-secondary" href="{{ url_for('admin.students') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% if preview %}
+<div class="card">
+  <div class="card-header"><div class="card-title">Preview</div><div class="card-sub">Showing {{ preview.rows|length }} of {{ preview.total }} row{{ 's' if preview.total != 1 else '' }}</div></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr>{% for h in preview.headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {% for row in preview.rows %}
+      <tr>{% for h in preview.headers %}<td>{{ row.get(h, '') }}</td>{% endfor %}</tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endif %}
+{% endblock %}

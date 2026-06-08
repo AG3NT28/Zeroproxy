@@ -1,0 +1,54 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div><div class="card-title">All Sessions</div><div class="card-sub">{{ sessions|length }} session{{ 's' if sessions|length != 1 else '' }}</div></div>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_sessions') }}">📥 Export CSV</a>
+  </div>
+  <form method="get" style="display:flex;gap:8px;margin-bottom:16px">
+    <input type="text" name="q" value="{{ search }}" placeholder="Search subject, teacher, dept..."
+           style="flex:1;min-width:200px;font-size:13px;padding:9px 12px;border-radius:var(--r8);background:var(--s2);border:1px solid var(--border);color:var(--text)">
+    <button class="btn btn-secondary btn-sm" type="submit">Search</button>
+  </form>
+  {% if sessions %}
+    {% for s in sessions %}
+    <a class="row-item" style="cursor:pointer;text-decoration:none;color:inherit" href="{{ url_for('admin.sessions', q=search, detail=s.id) }}">
+      <div class="ri-main">
+        <div class="ri-title">{{ s.code }} · {{ s.name or '' }} · {{ s.dept }} Sec {{ s.cls }}</div>
+        <div class="ri-sub">{{ s.teacher }} · Sem {{ s.sem }} · {{ s.date }} · {{ s.attendance.count() }} present</div>
+      </div>
+      <span class="badge {{ 'badge-green' if s.active else 'badge-purple' }}">{{ 'Live' if s.active else 'Done' }}</span>
+    </a>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No sessions found</div>
+  {% endif %}
+</div>
+{% if detail %}
+<div class="card" id="sess-detail">
+  <div class="card-header">
+    <div class="card-title">{{ detail.code }} · {{ detail.dept }} Sec {{ detail.cls }} · {{ detail.date }}</div>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.sessions', q=search) }}">✕ Close</a>
+  </div>
+  <div class="g4" style="margin-bottom:16px">
+    <div class="metric"><div class="mk">Teacher</div><div class="mv" style="font-size:16px">{{ detail.teacher }}</div></div>
+    <div class="metric"><div class="mk">Semester</div><div class="mv" style="font-size:16px">{{ detail.sem }}</div></div>
+    <div class="metric green"><div class="mk">Present</div><div class="mv">{{ detail.attendance.count() }}</div></div>
+    <div class="metric"><div class="mk">Status</div><div class="mv" style="font-size:16px">{{ 'Live' if detail.active else 'Done' }}</div></div>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>#</th><th>Name</th><th>Roll</th><th>Time</th><th>Type</th></tr></thead>
+    <tbody>
+      {% set entries = detail.attendance.all() %}
+      {% if entries %}
+        {% for e in entries %}
+        <tr><td>{{ loop.index }}</td><td>{{ e.name }}</td><td>{{ e.roll }}</td><td>{{ e.time }}</td><td>{{ 'Manual' if e.manual else 'QR Scan' }}</td></tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="5" style="text-align:center;color:var(--text3)">No attendance recorded</td></tr>
+      {% endif %}
+    </tbody>
+  </table></div>
+</div>
+{% endif %}
+{% endblock %}

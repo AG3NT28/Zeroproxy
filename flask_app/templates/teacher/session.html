@@ -1,0 +1,147 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="g2" style="margin-bottom:16px">
+  <div class="metric blue"><div class="mk">Total sessions</div><div class="mv">{{ total_sessions }}</div></div>
+  <div class="metric green"><div class="mk">Avg attendance</div><div class="mv">{{ (avg_attendance ~ ' avg') if avg_attendance is not none else '—' }}</div></div>
+</div>
+<div class="card" style="margin-bottom:16px">
+  <div class="card-header"><div><div class="card-title">Account</div><div class="card-sub">Teacher account details</div></div></div>
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap">
+    <div class="avatar av-lg av-accent">{{ avatar_initials(user.name) }}</div>
+    <div>
+      <div style="font-size:18px;font-weight:700">{{ user.name }}</div>
+      <div style="font-size:13px;color:var(--text2)">{{ user.dept or '' }}{{ ' · ' ~ user.subjects|join(', ') if user.subjects }}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:6px">Username: {{ user.username }}</div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="row-item" style="padding:14px 0;gap:12px;flex-wrap:wrap;display:flex;">
+    <div style="flex:1;min-width:180px"><div class="ri-title">Email</div><div class="ri-sub">{{ user.email or 'Not set' }}</div></div>
+    <div style="flex:1;min-width:180px"><div class="ri-title">Phone</div><div class="ri-sub">{{ user.phone or 'Not set' }}</div></div>
+  </div>
+</div>
+
+{% if active %}
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <div>
+      <div class="text-muted" style="font-size:12px;margin-bottom:3px">Live Session</div>
+      <div style="font-size:20px;font-weight:700">{{ active.code }} · Sem {{ active.sem }}</div>
+    </div>
+    <div class="timer-pill tp-green" id="sl-timer">00:00</div>
+  </div>
+  <div class="g4" style="margin-bottom:16px">
+    <div class="metric"><div class="mk">Subject</div><div class="mv" style="font-size:16px">{{ active.code }}</div></div>
+    <div class="metric"><div class="mk">Section</div><div class="mv" style="font-size:16px">Sec {{ active.cls }}</div></div>
+    <div class="metric"><div class="mk">Sem</div><div class="mv" style="font-size:16px">Sem {{ active.sem }}</div></div>
+    <div class="metric"><div class="mk">Dept</div><div class="mv" style="font-size:16px">{{ active.dept }}</div></div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+    <div class="metric"><div class="mk">Hotspot IP</div><div class="mv" style="font-size:16px">{{ active.hotspot_ip or '—' }}</div></div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;padding:16px 0">
+    <div class="qr-frame" style="margin-bottom:10px">
+      <img id="qr-img" src="{{ url_for('teacher.session_qr', sid=active.id) }}" width="200" height="200" alt="Session QR code">
+      <div class="qr-spin" id="qr-spin">↻</div>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:4px">QR refreshes every <span style="color:var(--accent2)">5 seconds</span> · next in <span id="qr-cd" style="color:var(--accent2)">5s</span></div>
+    <div class="qr-token" id="qr-token-disp">{{ active.current_code }}</div>
+    <div style="font-size:12px;color:var(--text3);margin-top:6px">Students can scan this QR from any browser/device; the session is shared securely across devices.</div>
+    <button class="btn btn-secondary btn-sm" style="margin-top:8px" id="copy-token-btn" data-token="{{ active.current_code }}">📋 Copy Token</button>
+  </div>
+  <div class="g2" style="margin-bottom:16px">
+    <div class="metric green"><div class="mk">Present</div><div class="mv" id="sl-present">{{ active.attendance.count() }}</div></div>
+    <div class="metric amber"><div class="mk">Proxy Flags</div><div class="mv">0</div></div>
+  </div>
+  <div class="sec-title">Present students</div>
+  <div id="sl-list">
+    {% if active.attendance.count() %}
+      {% for e in active.attendance %}
+      <div class="row-item">
+        <div class="avatar av-sm av-green">{{ (e.name[0] if e.name else '?') | upper }}</div>
+        <div class="ri-main"><div class="ri-title">{{ e.name }}</div><div class="ri-sub">{{ e.roll }} · {{ e.time }}{{ ' · Manual' if e.manual else '' }}</div></div>
+        <span class="badge badge-green">Present</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">Waiting for students to scan...</div>
+    {% endif %}
+  </div>
+  <div class="divider"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-secondary" style="flex:1" data-modal-open="add-manual-modal">+ Add Manually</button>
+    <form method="post" action="{{ url_for('teacher.end_session', sid=active.id) }}" data-confirm="End this session?" style="flex:1;display:flex">
+      <button class="btn btn-danger" style="flex:1" type="submit">■ End Session</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="add-manual-modal" style="display:none">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><div class="modal-title">Add Student Manually</div><button class="modal-close" data-modal-close="add-manual-modal">✕</button></div>
+    <form method="post" action="{{ url_for('teacher.add_manual', sid=active.id) }}">
+      <div class="field"><label>Student Name</label><input name="name" placeholder="Student name" required></div>
+      <div class="field"><label>Roll Number</label><input name="roll" placeholder="Roll number"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-modal-close="add-manual-modal">Cancel</button>
+        <button class="btn btn-primary" type="submit">Add Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+window.LIVE_SESSION = {
+  id: {{ active.id | tojson }},
+  startTime: {{ active.start_time | tojson }},
+  liveUrl: {{ url_for('teacher.session_live', sid=active.id) | tojson }},
+  qrUrl: {{ url_for('teacher.session_qr', sid=active.id) | tojson }},
+  rotateMs: {{ qr_rotate_ms }},
+}
+</script>
+<script src="{{ url_for('static', filename='js/teacher_session.js') }}" defer></script>
+{% else %}
+<div id="sess-form-wrap">
+  <div class="card">
+    <div class="card-header"><div><div class="card-title">Start New Session</div><div class="card-sub">Set up a teacher-controlled QR attendance session</div></div></div>
+    <form method="post" action="{{ url_for('teacher.start_session') }}">
+      <div class="field-row">
+        <div class="field"><label>Subject Code</label><input name="code" placeholder="CS301" required></div>
+        <div class="field"><label>Subject Name</label><input name="name" placeholder="Data Structures"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Section</label><input name="cls" placeholder="A" required></div>
+        <div class="field"><label>Semester</label>
+          <select name="sem">{% for n in range(1, 9) %}<option{{ ' selected' if n == 4 }}>{{ n }}</option>{% endfor %}</select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Department</label>
+          <select name="dept"><option>CSE</option><option>ECE</option><option>EEE</option><option>ME</option><option>CE</option><option>IT</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Teacher Hotspot IP (optional)</label><input name="hotspot" placeholder="e.g. 192.168.10.15"></div>
+      <button class="btn btn-primary btn-block" type="submit">▶ Generate QR Session</button>
+    </form>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="card-title" style="margin-bottom:14px">Today's Sessions</div>
+    <div>
+      {% if today_sessions %}
+        {% for s in today_sessions|reverse %}
+        <div class="row-item">
+          <div class="ri-main">
+            <div class="ri-title">{{ s.code }} · Sec {{ s.cls }} · Sem {{ s.sem }}</div>
+            <div class="ri-sub">{{ s.dept }} · {{ s.attendance.count() }} present</div>
+          </div>
+          <span class="badge {{ 'badge-green' if s.active else 'badge-gray' }}">{{ 'Live' if s.active else 'Done' }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">No sessions today</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

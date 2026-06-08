@@ -1,0 +1,64 @@
+{% extends 'shell.html' %}
+{% block content %}
+<div class="card" id="verify-card">
+  <div class="card-title" style="margin-bottom:14px">Location & Network Verification</div>
+  <div id="step-wifi" class="step-item chk">
+    <div class="step-ico">📶</div>
+    <div><div class="step-tit" style="font-size:13px;font-weight:500">Network Access</div><div class="step-sub text-muted" id="wifi-sub" style="font-size:12px">Checking local IP...</div></div>
+  </div>
+  <div id="step-loc" class="step-item pend">
+    <div class="step-ico">📍</div>
+    <div><div class="step-tit" style="font-size:13px;font-weight:500">Campus Location</div><div class="step-sub text-muted" id="loc-sub" style="font-size:12px">Waiting...</div></div>
+  </div>
+  <button class="btn btn-secondary btn-sm" id="recheck-btn" style="margin-top:10px;display:none">🔄 Retry Verification</button>
+</div>
+
+<div class="card" id="scan-card" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+    <div class="card-title">Mark Attendance</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm" id="cam-btn">📷 Camera</button>
+      <button class="btn btn-secondary btn-sm" id="manual-btn">⌨ Manual</button>
+    </div>
+  </div>
+
+  <div id="cam-section" style="display:none">
+    <div class="cam-view" style="margin-bottom:12px">
+      <video id="cam-video" autoplay muted playsinline></video>
+      <div class="cam-overlay"><div class="cam-box"><div class="cam-box-corners"></div><div class="scan-line"></div></div></div>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-secondary btn-block" id="stop-cam-btn">✕ Stop Scanner</button>
+    </div>
+  </div>
+
+  <div id="manual-section" style="display:none">
+    <div class="field">
+      <label>Session Code (4-digit)</label>
+      <input id="qr-in" placeholder="e.g. 1234" style="font-family:var(--mono);font-size:12px">
+      <div id="qr-help" style="font-size:12px;color:var(--text3);margin-top:6px">Type the 4-digit code shown on the teacher's live session.</div>
+    </div>
+    <button class="btn btn-success btn-block" id="mark-btn">✓ Mark Attendance</button>
+  </div>
+
+  <div id="att-success" style="display:none;text-align:center;padding:20px">
+    <div style="font-size:48px;margin-bottom:10px">✅</div>
+    <div style="font-size:18px;font-weight:700;color:var(--green)">Attendance Marked!</div>
+    <div style="font-size:13px;color:var(--text2);margin-top:6px" id="att-success-detail"></div>
+    <button class="btn btn-secondary" style="margin-top:14px" id="scan-again-btn">Scan Another Session</button>
+  </div>
+</div>
+
+<div class="card" id="blocked-card" style="display:none">
+  <div style="text-align:center;padding:20px">
+    <div style="font-size:40px;margin-bottom:10px">🚫</div>
+    <div style="font-size:15px;font-weight:600;color:var(--red);margin-bottom:6px">Verification Failed</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">You must be on an allowed college WiFi or teacher hotspot IP and within the campus boundary to mark attendance.</div>
+    <button class="btn btn-secondary" id="retry-btn">🔄 Retry</button>
+  </div>
+</div>
+
+<script>window.SCAN_CONFIG = {{ scan_config | tojson }}</script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
+<script src="{{ url_for('static', filename='js/student_scan.js') }}" defer></script>
+{% endblock %}
