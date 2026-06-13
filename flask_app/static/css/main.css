@@ -393,6 +393,8 @@ tr:hover td { background: rgba(255,255,255,.02); }
 .result-box.ok .result-title { color: var(--green); }
 .result-box.err .result-title { color: var(--red); }
 .result-detail { font-size: 13px; color: var(--text2); margin-top: 6px; font-family: var(--mono); }
+.result-time { align-items: center; justify-content: center; gap: 6px; margin-top: 10px; font-size: 13px; color: var(--text2); }
+.result-time span { font-family: var(--mono); font-weight: 600; color: var(--text); }
 .result-status { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; font-size: 13px; color: var(--text2); }
 .spinner { width: 16px; height: 16px; border: 2px solid var(--s4); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }

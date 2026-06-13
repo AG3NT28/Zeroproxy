@@ -151,15 +151,20 @@ def scan_mark():
     if AttendanceRecord.query.filter_by(session_id=sess.id, username=user.username).first():
         return jsonify(ok=False, message='Already marked for this session')
 
+    # Capture the marking instant once so the stored record, the response time,
+    # and what the student sees on screen are all the exact same value.
+    marked_time = now_time()
+    marked_date = now_date()
     rec = AttendanceRecord(session_id=sess.id, username=user.username, name=user.name,
                            roll=user.roll or user.username, code=sess.code, dept=sess.dept,
-                           sem=sess.sem, date=now_date(), time=now_time(), scan_ts=now_ms())
+                           sem=sess.sem, date=marked_date, time=marked_time, scan_ts=now_ms())
     db.session.add(rec)
     db.session.commit()
 
     alert = _check_threshold(user)
     return jsonify(ok=True, message='Attendance marked!',
-                   detail=f'{sess.code} · {sess.dept} · {now_time()}', alert=alert)
+                   detail=f'{sess.code} · {sess.dept}', time=marked_time, date=marked_date,
+                   alert=alert)
 
 
 # ─── My Attendance ────────────────────────────────────────────────────────────

@@ -281,13 +281,17 @@
   const resultStatus = document.getElementById('result-status')
   const resultStatusText = document.getElementById('result-status-text')
   const resultActionBtn = document.getElementById('result-action-btn')
+  const resultTime = document.getElementById('result-time')
+  const resultTimeVal = document.getElementById('result-time-val')
 
-  function showResult({ state, icon, title, detail, status, action }) {
+  function showResult({ state, icon, title, detail, status, action, time }) {
     resultBox.className = 'result-box ' + (state || 'info')
     resultIcon.textContent = icon
     resultTitle.textContent = title
     resultDetail.textContent = detail || ''
     resultDetail.style.display = detail ? 'block' : 'none'
+    if (time) { resultTime.style.display = 'flex'; resultTimeVal.textContent = time }
+    else { resultTime.style.display = 'none' }
     if (status) { resultStatus.style.display = 'flex'; resultStatusText.textContent = status }
     else { resultStatus.style.display = 'none' }
     resultActionBtn.style.display = action ? 'inline-flex' : 'none'
@@ -322,7 +326,8 @@
     if (data && data.ok) {
       showResult({
         state: 'ok', icon: '✅', title: 'Attendance marked!',
-        detail: data.detail || sessionLabel(sess), status: null, action: 'Scan another session',
+        detail: sessionLabel(sess) || data.detail, status: null, action: 'Scan another session',
+        time: [data.time, data.date].filter(Boolean).join(' · '),
       })
       toast(data.message || 'Attendance marked!', 'ok')
       if (data.alert) {
