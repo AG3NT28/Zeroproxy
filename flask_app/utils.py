@@ -9,8 +9,14 @@ import json
 import math
 import random
 import time
+from datetime import datetime, timedelta, timezone
 
 from flask import Response
+
+# All human-readable times/dates are rendered in IST (UTC+5:30) so they're
+# correct regardless of where the server is hosted. A fixed offset is used
+# rather than a named zone because IST has no DST, so it never shifts.
+IST = timezone(timedelta(hours=5, minutes=30))
 
 
 def now_ms():
@@ -18,11 +24,11 @@ def now_ms():
 
 
 def now_time():
-    return time.strftime('%I:%M %p').lstrip('0')
+    return datetime.now(IST).strftime('%I:%M %p').lstrip('0')
 
 
 def now_date():
-    return time.strftime('%-m/%-d/%Y')
+    return datetime.now(IST).strftime('%-m/%-d/%Y')
 
 
 def gen_id(prefix='id'):
