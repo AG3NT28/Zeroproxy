@@ -48,10 +48,6 @@ def _compute_at_risk(sessions, threshold):
     return sorted(out, key=lambda s: s['pct'])
 
 
-def _qr_target_url(token):
-    return url_for('student.scan', scan=token, _external=True)
-
-
 def _ensure_token_fresh(sess):
     """Rotate the session's QR token if QR_ROTATE_MS has elapsed. Mirrors the
     setTimeout(rotateQR, 5000) loop in Teacher.js, but driven lazily by polling
@@ -141,7 +137,11 @@ def add_manual(sid):
 def session_qr(sid):
     sess = _own_session_or_404(sid)
     _ensure_token_fresh(sess)
-    img = qrcode.make(_qr_target_url(sess.current_token), border=2)
+    # Encode the bare token, not a full scan URL. The URL wrapper added ~45 chars
+    # (and its `?scan=` param was never read server-side — scan() ignores
+    # request.args), needlessly inflating QR density. The student scanner and
+    # _resolve_scan_token both already accept a bare ATTX_V2_ token.
+    img = qrcode.make(sess.current_token, border=2)
     buf = io.BytesIO()
     img.save(buf, format='PNG')
     buf.seek(0)

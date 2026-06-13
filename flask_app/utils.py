@@ -34,14 +34,17 @@ def gen_token():
 
 
 def encode_session_payload(sess, token):
-    """sess is a models.Session row. Mirrors encodeSessionPayload() in helpers.js —
-    produces the same `ATTX_V2_<base64 json>` token embedded in the QR image."""
-    payload = {
-        'id': sess.id, 'code': sess.code, 'name': sess.name or sess.code,
-        'cls': sess.cls, 'sem': sess.sem, 'dept': sess.dept,
-        'duration': 0, 'teacher': sess.teacher, 'teacherUsername': sess.teacher_username,
-        'startTime': sess.start_time, 'date': sess.date, 'token': token,
-    }
+    """sess is a models.Session row. Produces the `ATTX_V2_<base64 json>` token
+    embedded in the QR image.
+
+    Only the fields the scanner actually needs are encoded — the session id (to
+    resolve the row) and the rotating token (to validate it). Every extra field
+    (teacher name, date, start time, …) inflated the base64 string, pushing the
+    rendered QR to ~version 14 (73x73 modules); at the 200px display size that
+    left each module ~2.6px wide — too dense for a phone camera to decode off a
+    screen, so jsQR never locked on and scans silently did nothing. Slimming the
+    payload drops it to ~version 6, which scans reliably."""
+    payload = {'id': sess.id, 'code': sess.code, 'token': token}
     raw = json.dumps(payload, separators=(',', ':')).encode('utf-8')
     return 'ATTX_V2_' + base64.b64encode(raw).decode('ascii')
 
