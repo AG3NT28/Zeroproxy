@@ -112,14 +112,55 @@
     setStep('loc', locOk ? 'ok' : 'fail', locOk ? 'Inside campus boundary ✓' : 'Outside campus range — move closer')
     if (net.allowed) {
       scanCard.style.display = 'block'
+      setMode('cam')
     } else {
       blockedCard.style.display = 'block'
       recheckBtn.style.display = 'block'
     }
   }
 
+  // ─── Mode toggle (camera ⇄ manual) ────────────────────────────────────────────
+  const camBtn = document.getElementById('cam-btn')
+  const manualBtn = document.getElementById('manual-btn')
+  const modeToggle = document.getElementById('mode-toggle')
+  const camSection = document.getElementById('cam-section')
+  const manualSection = document.getElementById('manual-section')
+  const resultPanel = document.getElementById('result-panel')
+  const startCamBtn = document.getElementById('start-cam-btn')
+  const stopCamBtn = document.getElementById('stop-cam-btn')
+  let currentMode = 'cam'
+
+  function setMode(mode) {
+    currentMode = mode
+    busy = false
+    stopCam()
+    resultPanel.style.display = 'none'
+    modeToggle.style.display = 'flex'
+    camBtn.classList.toggle('active', mode === 'cam')
+    manualBtn.classList.toggle('active', mode === 'manual')
+    camSection.style.display = mode === 'cam' ? 'block' : 'none'
+    manualSection.style.display = mode === 'manual' ? 'block' : 'none'
+    if (mode === 'cam') {
+      startCamBtn.style.display = 'block'
+      stopCamBtn.style.display = 'none'
+      setScanStatus('idle', 'Tap “Start Camera” to begin')
+    } else {
+      document.getElementById('qr-in').focus()
+    }
+  }
+
+  camBtn.addEventListener('click', () => setMode('cam'))
+  manualBtn.addEventListener('click', () => setMode('manual'))
+
   // ─── Camera scanning (jsQR) ───────────────────────────────────────────────────
-  let camStream = null, scanAnimFrame = null, lastScannedToken = '', lastScanTime = 0
+  let camStream = null, scanAnimFrame = null, busy = false
+  const scanStatus = document.getElementById('scan-status')
+  const scanStatusText = document.getElementById('scan-status-text')
+
+  function setScanStatus(state, text) {
+    scanStatus.className = 'scan-status ' + state
+    scanStatusText.textContent = text
+  }
 
   function stopCam() {
     if (scanAnimFrame) { cancelAnimationFrame(scanAnimFrame); scanAnimFrame = null }
@@ -132,13 +173,14 @@
     const video = document.getElementById('cam-video')
     if (!video) return
     if (typeof window.jsQR !== 'function') {
+      setScanStatus('err', 'QR decoder failed to load — use “Enter Code”')
       toast('QR decoder failed to load — use manual mode', 'err')
       return
     }
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d', { willReadFrequently: true })
     function scanFrame() {
-      if (!camStream) return
+      if (!camStream || busy) return
       // Guard the decode step — a single bad frame (e.g. zero-size canvas while
       // the camera is still warming up) must not throw and silently kill the
       // requestAnimationFrame loop, which would look like "scanning does nothing".
@@ -151,11 +193,7 @@
           const code = window.jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' })
           if (code && code.data) {
             const token = code.data.toString().trim()
-            if (token !== lastScannedToken || Date.now() - lastScanTime > 3000) {
-              lastScannedToken = token
-              lastScanTime = Date.now()
-              mark(token)
-            }
+            if (token) { processToken(token); return }
           }
         }
       } catch (e) { console.warn('QR decode frame skipped', e) }
@@ -164,32 +202,28 @@
     scanAnimFrame = requestAnimationFrame(scanFrame)
   }
 
-  document.getElementById('cam-btn').addEventListener('click', async () => {
-    document.getElementById('cam-section').style.display = 'block'
-    document.getElementById('manual-section').style.display = 'none'
-    document.getElementById('att-success').style.display = 'none'
+  startCamBtn.addEventListener('click', async () => {
+    setScanStatus('chk', 'Starting camera…')
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
       camStream = stream
       document.getElementById('cam-video').srcObject = stream
-      toast('Camera started', 'ok')
+      startCamBtn.style.display = 'none'
+      stopCamBtn.style.display = 'block'
+      setScanStatus('scanning', 'Searching for QR code…')
       startScanning()
     } catch (e) {
       console.error(e)
+      setScanStatus('err', 'Camera unavailable — use “Enter Code”')
       toast('Camera unavailable — use manual mode', 'err')
     }
   })
 
-  document.getElementById('manual-btn').addEventListener('click', () => {
-    document.getElementById('manual-section').style.display = 'block'
-    document.getElementById('cam-section').style.display = 'none'
-    document.getElementById('att-success').style.display = 'none'
+  stopCamBtn.addEventListener('click', () => {
     stopCam()
-  })
-
-  document.getElementById('stop-cam-btn').addEventListener('click', () => {
-    stopCam()
-    document.getElementById('cam-section').style.display = 'none'
+    startCamBtn.style.display = 'block'
+    stopCamBtn.style.display = 'none'
+    setScanStatus('idle', 'Scanner stopped — tap “Start Camera” to resume')
   })
 
   // ─── Manual entry ─────────────────────────────────────────────────────────────
@@ -201,47 +235,118 @@
       const matched = (cfg.activeSessions || []).find(s => s.currentCode === code || s.currentToken === code)
       help.textContent = matched ? `Matched session: ${matched.code} · ${matched.dept} Sec ${matched.cls}` : 'No active session matches that code.'
     } else {
-      help.textContent = 'Enter the 4-digit code, paste the QR link, or paste the raw token.'
+      help.textContent = 'Type the 4-digit code shown on the live session.'
     }
   })
 
   document.getElementById('mark-btn').addEventListener('click', () => {
     const raw = qrInput.value.trim()
     if (!raw) { toast('Enter a code or token', 'err'); return }
-    mark(raw)
-  })
-
-  document.getElementById('scan-again-btn').addEventListener('click', () => {
-    document.getElementById('att-success').style.display = 'none'
+    processToken(raw)
   })
 
   document.getElementById('retry-btn').addEventListener('click', runVerify)
   recheckBtn.addEventListener('click', runVerify)
+  document.getElementById('result-action-btn').addEventListener('click', () => setMode(currentMode))
+
+  // ─── Identify which session a scanned token belongs to (client-side preview) ──
+  // Lets us show "Session found · CS101" the instant the QR is decoded, before the
+  // server round-trip. Falls back gracefully when the token can't be parsed.
+  function identifySession(raw) {
+    let t = (raw || '').trim()
+    if (/^https?:\/\//i.test(t)) {
+      try { const u = new URL(t); t = (u.searchParams.get('scan') || u.searchParams.get('token') || t).trim() } catch (e) { /* keep raw */ }
+    }
+    const sessions = cfg.activeSessions || []
+    if (/^\d{4}$/.test(t)) return sessions.find(s => s.currentCode === t || s.currentToken === t) || null
+    if (t.startsWith('ATTX_V2_')) {
+      try {
+        const payload = JSON.parse(atob(t.slice('ATTX_V2_'.length)))
+        return sessions.find(s => s.id === payload.id) || { code: payload.code }
+      } catch (e) { return null }
+    }
+    return sessions.find(s => s.currentToken === t) || null
+  }
+
+  function sessionLabel(sess) {
+    if (!sess) return ''
+    return [sess.code, sess.dept, sess.cls ? 'Sec ' + sess.cls : ''].filter(Boolean).join(' · ')
+  }
+
+  // ─── Result panel state machine: found → marking → success / error ───────────
+  const resultBox = document.getElementById('result-box')
+  const resultIcon = document.getElementById('result-icon')
+  const resultTitle = document.getElementById('result-title')
+  const resultDetail = document.getElementById('result-detail')
+  const resultStatus = document.getElementById('result-status')
+  const resultStatusText = document.getElementById('result-status-text')
+  const resultActionBtn = document.getElementById('result-action-btn')
+
+  function showResult({ state, icon, title, detail, status, action }) {
+    resultBox.className = 'result-box ' + (state || 'info')
+    resultIcon.textContent = icon
+    resultTitle.textContent = title
+    resultDetail.textContent = detail || ''
+    resultDetail.style.display = detail ? 'block' : 'none'
+    if (status) { resultStatus.style.display = 'flex'; resultStatusText.textContent = status }
+    else { resultStatus.style.display = 'none' }
+    resultActionBtn.style.display = action ? 'inline-flex' : 'none'
+    if (action) resultActionBtn.textContent = action
+  }
+
+  function enterResult() {
+    modeToggle.style.display = 'none'
+    camSection.style.display = 'none'
+    manualSection.style.display = 'none'
+    resultPanel.style.display = 'block'
+  }
+
+  async function processToken(token) {
+    if (busy) return
+    busy = true
+    stopCam()
+    enterResult()
+
+    const sess = identifySession(token)
+    setScanStatus('ok', 'QR detected')
+    showResult({
+      state: 'info', icon: '🎯',
+      title: sess ? 'Session found' : 'QR detected',
+      detail: sess ? sessionLabel(sess) : 'Verifying with server…',
+      status: 'Marking your attendance…', action: null,
+    })
+    // brief beat so the "found" state is visible before the result resolves
+    await delay(500)
+
+    const data = await postMark(token)
+    if (data && data.ok) {
+      showResult({
+        state: 'ok', icon: '✅', title: 'Attendance marked!',
+        detail: data.detail || sessionLabel(sess), status: null, action: 'Scan another session',
+      })
+      toast(data.message || 'Attendance marked!', 'ok')
+      if (data.alert) {
+        toast(data.alert.parentEmail ? `⚠ Alert sent to ${data.alert.parentEmail}` : '⚠ Parent email not set — update profile', 'warn')
+      }
+    } else {
+      const msg = (data && data.message) || 'Could not mark attendance'
+      showResult({ state: 'err', icon: '⚠️', title: msg, detail: sess ? sessionLabel(sess) : '', status: null, action: 'Try again' })
+      toast(msg, 'err')
+    }
+    busy = false
+  }
 
   // ─── Server-side mark request ─────────────────────────────────────────────────
-  async function mark(token) {
+  async function postMark(token) {
     try {
       const res = await fetch(cfg.markUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
       })
-      const data = await res.json()
-      if (data.ok) {
-        document.getElementById('manual-section').style.display = 'none'
-        document.getElementById('cam-section').style.display = 'none'
-        document.getElementById('att-success').style.display = 'block'
-        document.getElementById('att-success-detail').textContent = data.detail || ''
-        stopCam()
-        toast(data.message || 'Attendance marked!', 'ok')
-        if (data.alert) {
-          toast(data.alert.parentEmail ? `⚠ Alert sent to ${data.alert.parentEmail}` : '⚠ Parent email not set — update profile', 'warn')
-        }
-      } else {
-        toast(data.message || 'Could not mark attendance', 'err')
-      }
+      return await res.json()
     } catch (e) {
-      toast('Network error — try again', 'err')
+      return { ok: false, message: 'Network error — try again' }
     }
   }
 

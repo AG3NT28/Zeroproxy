@@ -369,6 +369,34 @@ tr:hover td { background: rgba(255,255,255,.02); }
 }
 @keyframes scan { 0%, 100% { top: 6%; } 50% { top: 92%; } }
 
+/* ─── Scan page: mode toggle, status chip, result panel ─── */
+.seg-toggle { display: flex; gap: 4px; background: var(--s2); border: 1px solid var(--border); border-radius: var(--r10); padding: 4px; margin-bottom: 16px; }
+.seg-btn { flex: 1; padding: 9px 12px; border: none; background: transparent; border-radius: var(--r8); font-size: 13px; font-weight: 600; color: var(--text2); cursor: pointer; transition: all .15s; }
+.seg-btn:hover { color: var(--text); }
+.seg-btn.active { background: var(--s1); color: var(--accent2); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1); }
+
+.scan-status { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; max-width: 90%; padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; color: #fff; background: rgba(11, 13, 20, 0.78); backdrop-filter: blur(4px); white-space: nowrap; }
+.scan-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--s4); flex-shrink: 0; }
+.scan-status.scanning .scan-status-dot { background: var(--accent); animation: pulse-dot 1.2s ease-in-out infinite; }
+.scan-status.chk .scan-status-dot { background: var(--amber); animation: pulse-dot 1.2s ease-in-out infinite; }
+.scan-status.ok .scan-status-dot { background: var(--green); }
+.scan-status.err { background: rgba(220, 38, 38, 0.92); }
+.scan-status.err .scan-status-dot { background: #fff; }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.6); } }
+
+.result-box { text-align: center; padding: 24px 16px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--s2); transition: all .2s; }
+.result-box.info { background: var(--accent3); border-color: rgba(99, 102, 241, .25); }
+.result-box.ok { background: var(--green-bg); border-color: var(--green-border); }
+.result-box.err { background: var(--red-bg); border-color: var(--red-border); }
+.result-icon { font-size: 48px; line-height: 1; margin-bottom: 10px; }
+.result-title { font-size: 18px; font-weight: 700; color: var(--text); }
+.result-box.ok .result-title { color: var(--green); }
+.result-box.err .result-title { color: var(--red); }
+.result-detail { font-size: 13px; color: var(--text2); margin-top: 6px; font-family: var(--mono); }
+.result-status { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; font-size: 13px; color: var(--text2); }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--s4); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ─── Alert banner ─── */
 .alert-banner { background: var(--red-bg); border: 1px solid var(--red-border); border-radius: var(--r8); padding: 12px 16px; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
 .alert-banner .ab-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }

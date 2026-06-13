@@ -1,7 +1,8 @@
 {% extends 'shell.html' %}
 {% block content %}
 <div class="card" id="verify-card">
-  <div class="card-title" style="margin-bottom:14px">Location & Network Verification</div>
+  <div class="card-title" style="margin-bottom:4px">Location & Network Verification</div>
+  <div class="text-muted" style="font-size:12px;margin-bottom:14px">We confirm you're on campus before letting you mark attendance.</div>
   <div id="step-wifi" class="step-item chk">
     <div class="step-ico">📶</div>
     <div><div class="step-tit" style="font-size:13px;font-weight:500">Network Access</div><div class="step-sub text-muted" id="wifi-sub" style="font-size:12px">Checking local IP...</div></div>
@@ -14,38 +15,47 @@
 </div>
 
 <div class="card" id="scan-card" style="display:none">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+  <div style="margin-bottom:14px">
     <div class="card-title">Mark Attendance</div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-secondary btn-sm" id="cam-btn">📷 Camera</button>
-      <button class="btn btn-secondary btn-sm" id="manual-btn">⌨ Manual</button>
-    </div>
+    <div class="text-muted" style="font-size:12px;margin-top:2px">Scan the QR on your teacher's screen, or type the 4-digit code.</div>
   </div>
 
-  <div id="cam-section" style="display:none">
+  <!-- Mode toggle -->
+  <div class="seg-toggle" id="mode-toggle">
+    <button class="seg-btn active" id="cam-btn" type="button">📷 Scan QR</button>
+    <button class="seg-btn" id="manual-btn" type="button">⌨ Enter Code</button>
+  </div>
+
+  <!-- Camera mode -->
+  <div id="cam-section">
     <div class="cam-view" style="margin-bottom:12px">
       <video id="cam-video" autoplay muted playsinline></video>
       <div class="cam-overlay"><div class="cam-box"><div class="cam-box-corners"></div><div class="scan-line"></div></div></div>
+      <div class="scan-status" id="scan-status"><span class="scan-status-dot"></span><span id="scan-status-text">Tap “Start Camera” to begin</span></div>
     </div>
-    <div style="margin-top:12px">
-      <button class="btn btn-secondary btn-block" id="stop-cam-btn">✕ Stop Scanner</button>
-    </div>
+    <button class="btn btn-primary btn-block" id="start-cam-btn">📷 Start Camera</button>
+    <button class="btn btn-secondary btn-block" id="stop-cam-btn" style="display:none">✕ Stop Scanner</button>
   </div>
 
+  <!-- Manual mode -->
   <div id="manual-section" style="display:none">
     <div class="field">
       <label>Session Code (4-digit)</label>
-      <input id="qr-in" placeholder="e.g. 1234" style="font-family:var(--mono);font-size:12px">
+      <input id="qr-in" placeholder="e.g. 1234" inputmode="numeric" style="font-family:var(--mono);font-size:14px;letter-spacing:2px">
       <div id="qr-help" style="font-size:12px;color:var(--text3);margin-top:6px">Type the 4-digit code shown on the teacher's live session.</div>
     </div>
     <button class="btn btn-success btn-block" id="mark-btn">✓ Mark Attendance</button>
   </div>
 
-  <div id="att-success" style="display:none;text-align:center;padding:20px">
-    <div style="font-size:48px;margin-bottom:10px">✅</div>
-    <div style="font-size:18px;font-weight:700;color:var(--green)">Attendance Marked!</div>
-    <div style="font-size:13px;color:var(--text2);margin-top:6px" id="att-success-detail"></div>
-    <button class="btn btn-secondary" style="margin-top:14px" id="scan-again-btn">Scan Another Session</button>
+  <!-- Result panel: session found → marking → success / error -->
+  <div id="result-panel" style="display:none">
+    <div class="result-box" id="result-box">
+      <div class="result-icon" id="result-icon">🎯</div>
+      <div class="result-title" id="result-title">Session found</div>
+      <div class="result-detail" id="result-detail"></div>
+      <div class="result-status" id="result-status"><span class="spinner"></span><span id="result-status-text">Marking your attendance…</span></div>
+      <button class="btn btn-secondary" id="result-action-btn" style="margin-top:16px;display:none">Scan another session</button>
+    </div>
   </div>
 </div>
 
